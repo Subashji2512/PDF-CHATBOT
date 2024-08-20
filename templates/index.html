@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chat with PDF using Gemini</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
+</head>
+<body>
+    <div class="container mt-5">
+        <h1 class="text-center">Chat with PDF using Gemini 💁</h1>
+        <div class="form-group">
+            <label for="pdf_files">Upload PDF Files</label>
+            <input type="file" id="pdf_files" class="form-control" multiple>
+            <button id="upload_button" class="btn btn-primary mt-3">Submit & Process</button>
+        </div>
+        <div class="form-group">
+            <label for="user_question">Ask a Question</label>
+            <input type="text" id="user_question" class="form-control">
+            <button id="ask_button" class="btn btn-success mt-3">Ask</button>
+        </div>
+        <div id="chat_history" class="mt-5"></div>
+    </div>
+
+    <script>
+        $(document).ready(function() {
+            $('#upload_button').click(function() {
+                var files = $('#pdf_files')[0].files;
+                var formData = new FormData();
+                for (var i = 0; i < files.length; i++) {
+                    formData.append('pdf_files', files[i]);
+                }
+
+                $.ajax({
+                    url: '/upload',
+                    type: 'POST',
+                    data: formData,
+                    processData: false,
+                    contentType: false,
+                    success: function(response) {
+                        alert(response.message);
+                    },
+                    error: function(response) {
+                        alert('Error: ' + response.responseJSON.error);
+                    }
+                });
+            });
+
+            $('#ask_button').click(function() {
+                var userQuestion = $('#user_question').val();
+                if (userQuestion) {
+                    $.ajax({
+                        url: '/ask',
+                        type: 'POST',
+                        contentType: 'application/json',
+                        data: JSON.stringify({question: userQuestion}),
+                        success: function(response) {
+                            var chatHistory = $('#chat_history');
+                            chatHistory.append('<p><strong>Question:</strong> ' + userQuestion + '</p>');
+                            chatHistory.append('<p><strong>Answer:</strong> ' + response.answer.replace(/\n/g, '<br>') + '</p>');
+                        },
+                        error: function(response) {
+                            alert('Error: ' + response.responseJSON.error);
+                        }
+                    });
+                }
+            });
+        });
+    </script>
+</body>
+</html>
